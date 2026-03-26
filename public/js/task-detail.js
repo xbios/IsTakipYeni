@@ -1,4 +1,4 @@
-import { apiFetch } from './api.js';
+import { apiFetch, getAccessToken } from './api.js';
 import { initAuth, getKullanici, logout } from './auth.js';
 
 const taskId = new URLSearchParams(location.search).get('id');
@@ -14,7 +14,15 @@ async function main() {
   if (isimEl && kullanici) isimEl.textContent = kullanici.ad;
 
   await yukleGorev();
-  await yukleYorumlar();
+  await Promise.all([yukleYorumlar(), yukleEkler()]);
+
+  // Dosya seçildiğinde otomatik yükle
+  document.getElementById('ekDosyaInput')?.addEventListener('change', async (e) => {
+    const dosya = e.target.files[0];
+    if (!dosya) return;
+    await ekYukle(dosya);
+    e.target.value = '';
+  });
 
   document.getElementById('yorumForm')?.addEventListener('submit', yorumGonder);
   document.getElementById('duzenleBtn')?.addEventListener('click', duzenleModalAc);
@@ -103,6 +111,95 @@ window.yorumSil = async (id) => {
   await apiFetch(`/api/comments/${id}`, { method: 'DELETE' });
   yukleYorumlar();
 };
+
+// --- Ekler ---
+async function yukleEkler() {
+  const res  = await apiFetch(`/api/attachments?task_id=${taskId}`);
+  const ekler = await res.json();
+  const liste = document.getElementById('ekListe');
+  if (!liste) return;
+
+  if (ekler.length === 0) {
+    liste.innerHTML = '<p class="bos-alan">Henüz ek yok.</p>';
+    return;
+  }
+
+  const kullanici = getKullanici();
+  liste.innerHTML = ekler.map(d => `
+    <div class="ek-satir">
+      <span class="ek-ikon">${turIkon(d.mime_turu)}</span>
+      <span class="ek-ad" title="${d.orijinal_ad}">${d.orijinal_ad}</span>
+      <span class="ek-meta">${formatBoyut(d.boyut)} &bull; ${d.yukleyen_ad}</span>
+      <div class="ek-aksiyonlar">
+        <button class="btn btn-kucuk btn-ikincil" onclick="ekIndir(${d.id})">⬇ İndir</button>
+        ${kullanici && (kullanici.rol === 'admin' || kullanici.id === d.kullanici_id)
+          ? `<button class="btn btn-kucuk btn-tehlike" onclick="ekSil(${d.id})">🗑</button>`
+          : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function ekYukle(dosya) {
+  const MAX = 10 * 1024 * 1024;
+  if (dosya.size > MAX) { alert('Dosya 10 MB sınırını aşıyor'); return; }
+
+  const formData = new FormData();
+  formData.append('dosya', dosya);
+  formData.append('task_id', taskId);
+
+  const token = getAccessToken();
+  await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/attachments');
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.withCredentials = true;
+    xhr.onload = () => xhr.status === 201 ? resolve() : reject(new Error(JSON.parse(xhr.responseText).error));
+    xhr.onerror = () => reject(new Error('Ağ hatası'));
+    xhr.send(formData);
+  }).then(() => yukleEkler()).catch(err => alert(err.message));
+}
+
+window.ekIndir = (id) => {
+  apiFetch(`/api/attachments/${id}/download`)
+    .then(res => {
+      if (!res.ok) { alert('İndirme başarısız'); return; }
+      const cd    = res.headers.get('Content-Disposition') || '';
+      const match = cd.match(/filename="([^"]+)"/);
+      const ad    = match ? decodeURIComponent(match[1]) : 'dosya';
+      return res.blob().then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a   = document.createElement('a');
+        a.href = url; a.download = ad; a.click();
+        URL.revokeObjectURL(url);
+      });
+    });
+};
+
+window.ekSil = async (id) => {
+  if (!confirm('Bu eki silmek istiyor musunuz?')) return;
+  const res = await apiFetch(`/api/attachments/${id}`, { method: 'DELETE' });
+  if (res.ok) yukleEkler();
+  else alert('Silme başarısız');
+};
+
+function turIkon(mime) {
+  if (!mime) return '📄';
+  if (mime === 'application/pdf')     return '📕';
+  if (mime.includes('word'))          return '📘';
+  if (mime.includes('excel') || mime.includes('spreadsheet')) return '📗';
+  if (mime.startsWith('image/'))      return '🖼️';
+  if (mime.includes('zip'))           return '🗜️';
+  if (mime === 'text/plain')          return '📝';
+  return '📄';
+}
+
+function formatBoyut(bayt) {
+  if (!bayt) return '—';
+  if (bayt < 1024) return `${bayt} B`;
+  if (bayt < 1024 * 1024) return `${(bayt / 1024).toFixed(1)} KB`;
+  return `${(bayt / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 async function gorevSil() {
   if (!confirm('Görevi silmek istediğinize emin misiniz?')) return;

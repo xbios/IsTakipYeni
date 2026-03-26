@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Belgeler ve Dosyalar — İş Takip</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">İş Takip</div>
+    <div class="nav-links">
+      <a href="/index.html">Dashboard</a>
+      <a href="/tasks.html">Görevler</a>
+      <a href="/belgeler.html" class="aktif">Belgeler</a>
+    </div>
+    <div class="nav-kullanici">
+      <span id="kullaniciAdi"></span>
+      <button id="logoutBtn" class="btn btn-kucuk" data-logout>Çıkış</button>
+    </div>
+  </nav>
+
+  <main class="konteyner">
+    <div class="sayfa-baslik">
+      <h2>Belgeler ve Dosyalar</h2>
+      <button id="yukleBtn" class="btn btn-primary">+ Dosya Yükle</button>
+    </div>
+
+    <!-- Filtreler -->
+    <div class="filtre-bar">
+      <select id="filtreGorev"><option value="">Tüm Görevler</option></select>
+      <select id="filtreTur">
+        <option value="">Tüm Türler</option>
+        <option value="pdf">PDF</option>
+        <option value="word">Word</option>
+        <option value="excel">Excel</option>
+        <option value="resim">Resim</option>
+        <option value="diger">Diğer</option>
+      </select>
+      <input type="text" id="araInput" placeholder="Dosya adında ara…" class="ara-input">
+      <button id="filtreleBtn" class="btn btn-ikincil">Filtrele</button>
+    </div>
+
+    <!-- Dosya Kartları -->
+    <div id="dosyaGrid" class="dosya-grid">
+      <p class="bos-alan">Yükleniyor…</p>
+    </div>
+  </main>
+
+  <!-- Yükleme Modalı -->
+  <div id="yukleModal" class="modal-overlay gizli">
+    <div class="modal-kart">
+      <div class="modal-baslik-bar">
+        <h3>Dosya Yükle</h3>
+        <button class="modal-kapat" onclick="document.getElementById('yukleModal').classList.add('gizli')">&times;</button>
+      </div>
+
+      <form id="yukleForm">
+        <!-- Drag & Drop alanı -->
+        <div id="dropZone" class="drop-zone">
+          <div class="drop-icon">📂</div>
+          <p>Dosyayı buraya sürükleyin veya tıklayın</p>
+          <p class="drop-alt">PDF, Word, Excel, Resim, ZIP — maks. 10 MB</p>
+          <input type="file" id="dosyaInput" class="gizli-input"
+                 accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.txt,.zip">
+        </div>
+
+        <div id="secilenDosya" class="secilen-dosya gizli"></div>
+
+        <label style="margin-top:1rem">Göreve Bağla (opsiyonel)</label>
+        <select id="formGorev"><option value="">Göreve bağlama</option></select>
+
+        <div class="form-aksiyonlar">
+          <button type="button" class="btn btn-ikincil"
+                  onclick="document.getElementById('yukleModal').classList.add('gizli')">İptal</button>
+          <button type="submit" class="btn btn-primary" id="yukleSubmit" disabled>Yükle</button>
+        </div>
+
+        <div id="yukleIlerleme" class="ilerleme-bar gizli">
+          <div id="yukleIlerlemeDolgu" class="ilerleme-dolgu"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Göreve Bağla Modalı -->
+  <div id="baglaModal" class="modal-overlay gizli">
+    <div class="modal-kart" style="max-width:400px">
+      <div class="modal-baslik-bar">
+        <h3>Göreve Bağla</h3>
+        <button class="modal-kapat" onclick="document.getElementById('baglaModal').classList.add('gizli')">&times;</button>
+      </div>
+      <input type="hidden" id="baglaEkId">
+      <label>Görev Seç</label>
+      <select id="baglaGorevSec"><option value="">Bağlantıyı Kaldır</option></select>
+      <div class="form-aksiyonlar">
+        <button type="button" class="btn btn-ikincil"
+                onclick="document.getElementById('baglaModal').classList.add('gizli')">İptal</button>
+        <button type="button" class="btn btn-primary" id="baglaKaydet">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/belgeler.js"></script>
+</body>
+</html>

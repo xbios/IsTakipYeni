@@ -53,6 +53,20 @@ CREATE TABLE IF NOT EXISTS tasks (
   CONSTRAINT fk_task_olusturan FOREIGN KEY (olusturan_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
+-- Dosya Ekleri
+CREATE TABLE IF NOT EXISTS attachments (
+  id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  task_id      INT UNSIGNED,                          -- NULL olabilir (göreve bağlı olmayabilir)
+  kullanici_id INT UNSIGNED NOT NULL,
+  orijinal_ad  VARCHAR(255) NOT NULL,                 -- Kullanıcının yüklediği dosya adı
+  dosya_ad     VARCHAR(255) NOT NULL,                 -- Sunucuda saklanan benzersiz ad
+  mime_turu    VARCHAR(100),
+  boyut        INT UNSIGNED,                          -- Bayt cinsinden
+  created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_att_task FOREIGN KEY (task_id)      REFERENCES tasks(id) ON DELETE SET NULL,
+  CONSTRAINT fk_att_user FOREIGN KEY (kullanici_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 -- Yorumlar
 CREATE TABLE IF NOT EXISTS comments (
   id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

@@ -12,6 +12,7 @@
     <div class="nav-links">
       <a href="/index.html">Dashboard</a>
       <a href="/tasks.html">Görevler</a>
+      <a href="/belgeler.html">Belgeler</a>
     </div>
     <div class="nav-kullanici">
       <span id="kullaniciAdi"></span>
@@ -64,6 +65,19 @@
         </div>
       </div>
     </div>
+
+    <!-- Ekler -->
+    <section class="yorumlar-bolum" style="margin-bottom:1.25rem">
+      <div class="ek-baslik-bar">
+        <h3>Ekler</h3>
+        <label class="btn btn-kucuk btn-ikincil" for="ekDosyaInput" style="cursor:pointer">+ Dosya Ekle</label>
+        <input type="file" id="ekDosyaInput" class="gizli-input"
+               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.txt,.zip">
+      </div>
+      <div id="ekListe" class="ek-liste">
+        <p class="bos-alan">Yükleniyor…</p>
+      </div>
+    </section>
 
     <!-- Yorumlar -->
     <section class="yorumlar-bolum">
