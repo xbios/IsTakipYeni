@@ -63,6 +63,15 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+/**
+ * Multer, multipart başlığındaki dosya adını latin1 olarak okur.
+ * Tarayıcılar UTF-8 gönderdiğinden Türkçe/özel karakterler bozulur.
+ * latin1 → utf8 dönüşümü ile orijinal adı düzgün elde ediyoruz.
+ */
+function utf8Adi(multerOriginalname) {
+  return Buffer.from(multerOriginalname, 'latin1').toString('utf8');
+}
+
 // --- Dosya yükle ---
 router.post('/', auth, upload.single('dosya'), async (req, res) => {
   try {
@@ -79,19 +88,22 @@ router.post('/', auth, upload.single('dosya'), async (req, res) => {
       }
     }
 
+    // Türkçe karakter düzeltmesi
+    const orijinalAd = utf8Adi(req.file.originalname);
+
     const [result] = await pool.execute(
       `INSERT INTO attachments (task_id, kullanici_id, orijinal_ad, dosya_ad, mime_turu, boyut)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [
         task_id || null,
         req.user.id,
-        req.file.originalname,
+        orijinalAd,
         req.file.filename,
         req.file.mimetype,
         req.file.size,
       ]
     );
-    res.status(201).json({ id: result.insertId, orijinal_ad: req.file.originalname });
+    res.status(201).json({ id: result.insertId, orijinal_ad: orijinalAd });
   } catch (err) {
     // Multer hataları (dosya türü, boyut)
     if (err.message === 'Desteklenmeyen dosya türü')
@@ -118,8 +130,15 @@ router.get('/:id/download', auth, async (req, res) => {
     if (!fs.existsSync(dosyaYolu))
       return res.status(404).json({ error: 'Fiziksel dosya bulunamadı' });
 
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(dosya.orijinal_ad)}"`);
-    res.setHeader('Content-Type', dosya.mime_turu);
+    // RFC 5987 — ASCII olmayan karakterler için filename* kullanılır.
+    // Eski tarayıcılar için fallback olarak ASCII sürüm de eklenir.
+    const asciiFallback = dosya.orijinal_ad.replace(/[^\x20-\x7E]/g, '_');
+    const rfc5987       = encodeURIComponent(dosya.orijinal_ad).replace(/'/g, '%27');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${asciiFallback}"; filename*=UTF-8''${rfc5987}`
+    );
+    res.setHeader('Content-Type', dosya.mime_turu || 'application/octet-stream');
     res.sendFile(dosyaYolu);
   } catch (err) {
     console.error(err);

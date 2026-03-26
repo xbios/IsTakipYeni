@@ -66,7 +66,22 @@ router.get('/dashboard', auth, async (req, res) => {
     // Toplam görev sayısı
     const [[{ toplam }]] = await pool.execute('SELECT COUNT(*) AS toplam FROM tasks');
 
-    res.json({ toplam, durum, benim, bugun, gecikis, hafta, son });
+    // Öncelik dağılımı
+    const [oncelik] = await pool.execute(
+      `SELECT oncelik, COUNT(*) AS sayi FROM tasks GROUP BY oncelik`
+    );
+
+    // Projeye göre görev sayısı (ilk 8 proje)
+    const [projeData] = await pool.execute(
+      `SELECT p.ad, COUNT(t.id) AS sayi
+       FROM projects p
+       LEFT JOIN tasks t ON t.proje_id = p.id
+       GROUP BY p.id, p.ad
+       ORDER BY sayi DESC
+       LIMIT 8`
+    );
+
+    res.json({ toplam, durum, oncelik, projeData, benim, bugun, gecikis, hafta, son });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Sunucu hatası' });

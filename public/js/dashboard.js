@@ -1,5 +1,21 @@
 import { apiFetch } from './api.js';
 import { initAuth, getKullanici, logout } from './auth.js';
+import { donutGrafik, cubukGrafik } from './chart.js';
+
+// Sabit renkler
+const DURUM_RENK = {
+  bekliyor:     '#f59e0b',
+  devam_ediyor: '#3b82f6',
+  tamamlandi:   '#22c55e',
+};
+const ONCELIK_RENK = {
+  yuksek: '#ef4444',
+  orta:   '#f59e0b',
+  dusuk:  '#22c55e',
+};
+const PROJE_RENKLER = [
+  '#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6'
+];
 
 async function main() {
   const ok = await initAuth();
@@ -19,6 +35,30 @@ async function main() {
   document.getElementById('tamamSayi').textContent      = durumSayi(data.durum, 'tamamlandi');
   document.getElementById('gecikmisSayi').textContent   = data.gecikis.length;
 
+  // ── Durum dağılımı — halka grafiği ──
+  donutGrafik(document.getElementById('durumGrafik'), [
+    { etiket: 'Bekliyor',     sayi: durumSayi(data.durum, 'bekliyor'),     renk: DURUM_RENK.bekliyor },
+    { etiket: 'Devam Ediyor', sayi: durumSayi(data.durum, 'devam_ediyor'), renk: DURUM_RENK.devam_ediyor },
+    { etiket: 'Tamamlandı',   sayi: durumSayi(data.durum, 'tamamlandi'),   renk: DURUM_RENK.tamamlandi },
+  ]);
+
+  // ── Öncelik dağılımı — çubuk grafiği ──
+  cubukGrafik(document.getElementById('oncelikGrafik'), [
+    { etiket: 'Yüksek', sayi: oncelikSayi(data.oncelik, 'yuksek'), renk: ONCELIK_RENK.yuksek },
+    { etiket: 'Orta',   sayi: oncelikSayi(data.oncelik, 'orta'),   renk: ONCELIK_RENK.orta },
+    { etiket: 'Düşük',  sayi: oncelikSayi(data.oncelik, 'dusuk'),  renk: ONCELIK_RENK.dusuk },
+  ]);
+
+  // ── Projelere göre görev sayısı — çubuk grafiği ──
+  cubukGrafik(
+    document.getElementById('projeGrafik'),
+    (data.projeData || []).map((p, i) => ({
+      etiket: p.ad,
+      sayi:   p.sayi,
+      renk:   PROJE_RENKLER[i % PROJE_RENKLER.length],
+    }))
+  );
+
   renderListe('benimGorevler',   data.benim,   satirOlustur);
   renderListe('bugunDeadline',   data.bugun,   satirOlustur);
   renderListe('gecikmisList',    data.gecikis, satirOlustur);
@@ -27,8 +67,13 @@ async function main() {
 }
 
 function durumSayi(durumlar, durum) {
-  const b = durumlar.find(d => d.durum === durum);
-  return b ? b.sayi : 0;
+  const b = (durumlar || []).find(d => d.durum === durum);
+  return b ? Number(b.sayi) : 0;
+}
+
+function oncelikSayi(liste, oncelik) {
+  const b = (liste || []).find(d => d.oncelik === oncelik);
+  return b ? Number(b.sayi) : 0;
 }
 
 function renderListe(id, liste, satirFn) {

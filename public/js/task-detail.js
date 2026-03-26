@@ -131,6 +131,9 @@ async function yukleEkler() {
       <span class="ek-ad" title="${d.orijinal_ad}">${d.orijinal_ad}</span>
       <span class="ek-meta">${formatBoyut(d.boyut)} &bull; ${d.yukleyen_ad}</span>
       <div class="ek-aksiyonlar">
+        ${onizlenebilir(d.mime_turu)
+          ? `<button class="btn btn-kucuk btn-onizle" onclick="onizle(${d.id},'${escAttr(d.mime_turu)}','${escAttr(d.orijinal_ad)}')">👁 Önizle</button>`
+          : ''}
         <button class="btn btn-kucuk btn-ikincil" onclick="ekIndir(${d.id})">⬇ İndir</button>
         ${kullanici && (kullanici.rol === 'admin' || kullanici.id === d.kullanici_id)
           ? `<button class="btn btn-kucuk btn-tehlike" onclick="ekSil(${d.id})">🗑</button>`
@@ -181,6 +184,64 @@ window.ekSil = async (id) => {
   const res = await apiFetch(`/api/attachments/${id}`, { method: 'DELETE' });
   if (res.ok) yukleEkler();
   else alert('Silme başarısız');
+};
+
+function onizlenebilir(mime) {
+  return mime === 'text/plain' || mime?.startsWith('image/') || mime === 'application/pdf';
+}
+
+function escAttr(s) {
+  return String(s).replace(/'/g, "\\'");
+}
+
+// --- Önizleme ---
+let _onizleBlobUrl = null;
+
+window.onizle = async (id, mime, ad) => {
+  document.getElementById('onizleBaslik').textContent = ad;
+  document.getElementById('onizleIcerik').innerHTML   = '<p class="bos-alan">Yükleniyor…</p>';
+  document.getElementById('onizleModal').classList.remove('gizli');
+
+  if (_onizleBlobUrl) { URL.revokeObjectURL(_onizleBlobUrl); _onizleBlobUrl = null; }
+
+  try {
+    const res = await apiFetch(`/api/attachments/${id}/download`);
+    if (!res.ok) throw new Error('Dosya yüklenemedi');
+
+    const icerik = document.getElementById('onizleIcerik');
+
+    if (mime === 'text/plain') {
+      const metin = await res.text();
+      icerik.innerHTML = `<pre class="onizle-text">${escHtml(metin)}</pre>`;
+
+    } else if (mime.startsWith('image/')) {
+      const blob = await res.blob();
+      _onizleBlobUrl = URL.createObjectURL(blob);
+      icerik.innerHTML = `<div class="onizle-resim-sarici">
+        <img src="${_onizleBlobUrl}" class="onizle-img" alt="${escHtml(ad)}">
+      </div>`;
+
+    } else if (mime === 'application/pdf') {
+      const blob = await res.blob();
+      _onizleBlobUrl = URL.createObjectURL(blob);
+      icerik.innerHTML = `<iframe src="${_onizleBlobUrl}" class="onizle-pdf" title="${escHtml(ad)}"></iframe>`;
+    }
+  } catch (err) {
+    document.getElementById('onizleIcerik').innerHTML =
+      `<p class="bos-alan hata-metin">${err.message}</p>`;
+  }
+
+  document.getElementById('onizleIndir').onclick = () => ekIndir(id);
+};
+
+window.onizleKapatBtn = () => {
+  document.getElementById('onizleModal').classList.add('gizli');
+  if (_onizleBlobUrl) { URL.revokeObjectURL(_onizleBlobUrl); _onizleBlobUrl = null; }
+  document.getElementById('onizleIcerik').innerHTML = '';
+};
+
+window.onizleKapat = (e) => {
+  if (e.target === document.getElementById('onizleModal')) onizleKapatBtn();
 };
 
 function turIkon(mime) {

@@ -136,6 +136,23 @@
     </div>
   </div>
 
+  <!-- Önizleme Modalı -->
+  <div id="onizleModal" class="modal-overlay gizli" onclick="onizleKapat(event)">
+    <div class="modal-kart onizle-kart">
+      <div class="modal-baslik-bar">
+        <h3 id="onizleBaslik" class="onizle-baslik-metin"></h3>
+        <button class="modal-kapat" onclick="onizleKapatBtn()">&times;</button>
+      </div>
+      <div id="onizleIcerik" class="onizle-icerik">
+        <p class="bos-alan">Yükleniyor…</p>
+      </div>
+      <div class="form-aksiyonlar" style="margin-top:.75rem">
+        <button class="btn btn-ikincil" onclick="onizleKapatBtn()">Kapat</button>
+        <button class="btn btn-primary" id="onizleIndir">⬇ İndir</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="/js/task-detail.js"></script>
 </body>
 </html>

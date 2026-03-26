@@ -90,6 +90,9 @@ function renderDosyalar() {
           : '<div class="dosya-gorev-link dosya-baglantisiz">Göreve bağlı değil</div>'}
       </div>
       <div class="dosya-aksiyonlar">
+        ${onizlenebilir(d.mime_turu)
+          ? `<button class="btn btn-kucuk btn-onizle" onclick="onizle(${d.id},'${escAttr(d.mime_turu)}','${escAttr(d.orijinal_ad)}')">👁 Önizle</button>`
+          : ''}
         <button class="btn btn-kucuk btn-ikincil" onclick="dosyaIndir(${d.id}, '${encodeURIComponent(d.orijinal_ad)}')">⬇ İndir</button>
         <button class="btn btn-kucuk btn-ikincil" onclick="baglaModalAc(${d.id})">🔗 Bağla</button>
         <button class="btn btn-kucuk btn-tehlike" onclick="dosyaSil(${d.id})">🗑</button>
@@ -211,6 +214,76 @@ window.dosyaSil = async (id) => {
   if (!res.ok) { alert('Silme başarısız'); return; }
   yukleDosyalar();
 };
+
+// --- Önizleme ---
+let _onizleBlobUrl = null; // bellek sızıntısını önlemek için takip et
+let _onizleIndirId = null;
+
+window.onizle = async (id, mime, ad) => {
+  _onizleIndirId = id;
+  document.getElementById('onizleBaslik').textContent = ad;
+  document.getElementById('onizleIcerik').innerHTML   = '<p class="bos-alan">Yükleniyor…</p>';
+  document.getElementById('onizleModal').classList.remove('gizli');
+
+  // Önceki blob URL'i temizle
+  if (_onizleBlobUrl) { URL.revokeObjectURL(_onizleBlobUrl); _onizleBlobUrl = null; }
+
+  try {
+    const res = await apiFetch(`/api/attachments/${id}/download`);
+    if (!res.ok) throw new Error('Dosya yüklenemedi');
+
+    const icerik = document.getElementById('onizleIcerik');
+
+    if (mime === 'text/plain') {
+      const metin = await res.text();
+      icerik.innerHTML = `<pre class="onizle-text">${escHtml(metin)}</pre>`;
+
+    } else if (mime.startsWith('image/')) {
+      const blob = await res.blob();
+      _onizleBlobUrl = URL.createObjectURL(blob);
+      icerik.innerHTML = `<div class="onizle-resim-sarici">
+        <img src="${_onizleBlobUrl}" class="onizle-img" alt="${escHtml(ad)}">
+      </div>`;
+
+    } else if (mime === 'application/pdf') {
+      const blob = await res.blob();
+      _onizleBlobUrl = URL.createObjectURL(blob);
+      icerik.innerHTML = `<iframe src="${_onizleBlobUrl}" class="onizle-pdf" title="${escHtml(ad)}"></iframe>`;
+    }
+  } catch (err) {
+    document.getElementById('onizleIcerik').innerHTML = `<p class="bos-alan hata-metin">${err.message}</p>`;
+  }
+
+  // İndir butonu
+  document.getElementById('onizleIndir').onclick = () => dosyaIndir(id, '');
+};
+
+window.onizleKapatBtn = () => {
+  document.getElementById('onizleModal').classList.add('gizli');
+  if (_onizleBlobUrl) { URL.revokeObjectURL(_onizleBlobUrl); _onizleBlobUrl = null; }
+  document.getElementById('onizleIcerik').innerHTML = '';
+};
+
+// Overlay'e tıklanınca kapat (modalın kendisine değil)
+window.onizleKapat = (e) => {
+  if (e.target === document.getElementById('onizleModal')) onizleKapatBtn();
+};
+
+function onizlenebilir(mime) {
+  return mime === 'text/plain' || mime?.startsWith('image/') || mime === 'application/pdf';
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function escAttr(s) {
+  return String(s).replace(/'/g, "\\'");
+}
 
 // --- Yardımcı fonksiyonlar ---
 function turKontrol(mime, tur) {
