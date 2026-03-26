@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — İş Takip</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Navigasyon -->
+  <nav class="navbar">
+    <div class="nav-brand">İş Takip</div>
+    <div class="nav-links">
+      <a href="/index.html" class="aktif">Dashboard</a>
+      <a href="/tasks.html">Görevler</a>
+    </div>
+    <div class="nav-kullanici">
+      <span id="kullaniciAdi"></span>
+      <button id="logoutBtn" class="btn btn-kucuk" data-logout>Çıkış</button>
+    </div>
+  </nav>
+
+  <main class="konteyner">
+    <h2>Dashboard</h2>
+
+    <!-- Özet Kartlar -->
+    <div class="kart-grid">
+      <div class="ozet-kart">
+        <div class="ozet-sayi" id="toplamGorev">—</div>
+        <div class="ozet-etiket">Toplam Görev</div>
+      </div>
+      <div class="ozet-kart bekliyor">
+        <div class="ozet-sayi" id="bekleyenSayi">—</div>
+        <div class="ozet-etiket">Bekliyor</div>
+      </div>
+      <div class="ozet-kart devam">
+        <div class="ozet-sayi" id="devamSayi">—</div>
+        <div class="ozet-etiket">Devam Ediyor</div>
+      </div>
+      <div class="ozet-kart tamamlandi">
+        <div class="ozet-sayi" id="tamamSayi">—</div>
+        <div class="ozet-etiket">Tamamlandı</div>
+      </div>
+      <div class="ozet-kart gecikis">
+        <div class="ozet-sayi" id="gecikmisSayi">—</div>
+        <div class="ozet-etiket">Gecikmiş</div>
+      </div>
+    </div>
+
+    <!-- Bana Atanmış -->
+    <section class="tablo-bolum">
+      <h3>Bana Atanmış Açık Görevler</h3>
+      <div class="tablo-sarici">
+        <table class="tablo">
+          <thead><tr>
+            <th>Başlık</th><th>Proje</th><th>Durum</th><th>Öncelik</th><th>Deadline</th>
+          </tr></thead>
+          <tbody id="benimGorevler"><tr><td colspan="5" class="bos">Yükleniyor…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Bugün Deadline -->
+    <section class="tablo-bolum">
+      <h3>Bugün Deadline</h3>
+      <div class="tablo-sarici">
+        <table class="tablo">
+          <thead><tr>
+            <th>Başlık</th><th>Proje</th><th>Durum</th><th>Öncelik</th><th>Deadline</th>
+          </tr></thead>
+          <tbody id="bugunDeadline"><tr><td colspan="5" class="bos">Yükleniyor…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Gecikmiş -->
+    <section class="tablo-bolum">
+      <h3>Gecikmiş Görevler</h3>
+      <div class="tablo-sarici">
+        <table class="tablo">
+          <thead><tr>
+            <th>Başlık</th><th>Proje</th><th>Durum</th><th>Öncelik</th><th>Deadline</th>
+          </tr></thead>
+          <tbody id="gecikmisList"><tr><td colspan="5" class="bos">Yükleniyor…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Bu Hafta -->
+    <section class="tablo-bolum">
+      <h3>Bu Hafta Deadline</h3>
+      <div class="tablo-sarici">
+        <table class="tablo">
+          <thead><tr>
+            <th>Başlık</th><th>Proje</th><th>Durum</th><th>Öncelik</th><th>Deadline</th>
+          </tr></thead>
+          <tbody id="haftaDeadline"><tr><td colspan="5" class="bos">Yükleniyor…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Son Eklenenler -->
+    <section class="tablo-bolum">
+      <h3>Son Eklenen Görevler</h3>
+      <div class="tablo-sarici">
+        <table class="tablo">
+          <thead><tr>
+            <th>Başlık</th><th>Proje</th><th>Durum</th><th>Öncelik</th><th>Deadline</th>
+          </tr></thead>
+          <tbody id="sonEklenenler"><tr><td colspan="5" class="bos">Yükleniyor…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/js/dashboard.js"></script>
+</body>
+</html>

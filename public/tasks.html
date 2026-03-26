@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Görevler — İş Takip</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">İş Takip</div>
+    <div class="nav-links">
+      <a href="/index.html">Dashboard</a>
+      <a href="/tasks.html" class="aktif">Görevler</a>
+    </div>
+    <div class="nav-kullanici">
+      <span id="kullaniciAdi"></span>
+      <button id="logoutBtn" class="btn btn-kucuk" data-logout>Çıkış</button>
+    </div>
+  </nav>
+
+  <main class="konteyner">
+    <div class="sayfa-baslik">
+      <h2>Görevler</h2>
+      <button id="yeniGorevBtn" class="btn btn-primary">+ Yeni Görev</button>
+    </div>
+
+    <!-- Filtreler -->
+    <div class="filtre-bar">
+      <select id="filtreProje"><option value="">Tüm Projeler</option></select>
+      <select id="filtreDurum">
+        <option value="">Tüm Durumlar</option>
+        <option value="bekliyor">Bekliyor</option>
+        <option value="devam_ediyor">Devam Ediyor</option>
+        <option value="tamamlandi">Tamamlandı</option>
+      </select>
+      <select id="filtreAtanan"><option value="">Tüm Kullanıcılar</option></select>
+      <select id="filtreOncelik">
+        <option value="">Tüm Öncelikler</option>
+        <option value="yuksek">Yüksek</option>
+        <option value="orta">Orta</option>
+        <option value="dusuk">Düşük</option>
+      </select>
+      <input type="text" id="araInput" placeholder="Başlıkta ara…" class="ara-input">
+      <button id="filtreleBtn" class="btn btn-ikincil">Filtrele</button>
+    </div>
+
+    <!-- Görev Tablosu -->
+    <div class="tablo-sarici">
+      <table class="tablo">
+        <thead>
+          <tr>
+            <th data-siralama="baslik">Başlık ↕</th>
+            <th>Proje</th>
+            <th>Atanan</th>
+            <th data-siralama="durum">Durum ↕</th>
+            <th data-siralama="oncelik">Öncelik ↕</th>
+            <th data-siralama="deadline">Deadline ↕</th>
+            <th>İşlem</th>
+          </tr>
+        </thead>
+        <tbody id="gorevTablo">
+          <tr><td colspan="7" class="bos">Yükleniyor…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Yeni/Düzenle Modal -->
+  <div id="gorevModal" class="modal-overlay gizli">
+    <div class="modal-kart">
+      <div class="modal-baslik-bar">
+        <h3 id="modalBaslik">Yeni Görev</h3>
+        <button id="modalKapat" class="modal-kapat">&times;</button>
+      </div>
+      <form id="gorevForm">
+        <input type="hidden" id="gorevId">
+
+        <label>Başlık *</label>
+        <input type="text" id="formBaslik" required>
+
+        <label>Açıklama</label>
+        <textarea id="formAciklama" rows="3"></textarea>
+
+        <div class="form-satir">
+          <div>
+            <label>Proje *</label>
+            <select id="formProje" required><option value="">Seçiniz</option></select>
+          </div>
+          <div>
+            <label>Atanan</label>
+            <select id="formAtanan"><option value="">Seçiniz</option></select>
+          </div>
+        </div>
+
+        <div class="form-satir">
+          <div>
+            <label>Durum</label>
+            <select id="formDurum">
+              <option value="bekliyor">Bekliyor</option>
+              <option value="devam_ediyor">Devam Ediyor</option>
+              <option value="tamamlandi">Tamamlandı</option>
+            </select>
+          </div>
+          <div>
+            <label>Öncelik</label>
+            <select id="formOncelik">
+              <option value="dusuk">Düşük</option>
+              <option value="orta">Orta</option>
+              <option value="yuksek">Yüksek</option>
+            </select>
+          </div>
+          <div>
+            <label>Deadline</label>
+            <input type="date" id="formDeadline">
+          </div>
+        </div>
+
+        <div class="form-aksiyonlar">
+          <button type="button" id="modalKapat2" class="btn btn-ikincil" onclick="document.getElementById('gorevModal').classList.add('gizli')">İptal</button>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/js/tasks.js"></script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Görev Detay — İş Takip</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">İş Takip</div>
+    <div class="nav-links">
+      <a href="/index.html">Dashboard</a>
+      <a href="/tasks.html">Görevler</a>
+    </div>
+    <div class="nav-kullanici">
+      <span id="kullaniciAdi"></span>
+      <button id="logoutBtn" class="btn btn-kucuk" data-logout>Çıkış</button>
+    </div>
+  </nav>
+
+  <main class="konteyner">
+    <div class="sayfa-baslik">
+      <a href="/tasks.html" class="geri-link">← Görevlere Dön</a>
+      <div class="aksiyon-gruplar">
+        <button id="duzenleBtn" class="btn btn-ikincil">Düzenle</button>
+        <button id="silBtn" class="btn btn-tehlike">Sil</button>
+      </div>
+    </div>
+
+    <!-- Görev Detay Kartı -->
+    <div class="detay-kart">
+      <h2 id="gorevBaslik">Yükleniyor…</h2>
+      <p id="gorevAciklama" class="aciklama-metin"></p>
+
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="meta-etiket">Proje</span>
+          <span id="gorevProje"></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-etiket">Atanan</span>
+          <span id="gorevAtanan"></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-etiket">Durum</span>
+          <span id="gorevDurum" class="badge"></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-etiket">Öncelik</span>
+          <span id="gorevOncelik" class="badge"></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-etiket">Deadline</span>
+          <span id="gorevDeadline"></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-etiket">Oluşturan</span>
+          <span id="gorevOlusturan"></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-etiket">Oluşturma Tarihi</span>
+          <span id="gorevTarih"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yorumlar -->
+    <section class="yorumlar-bolum">
+      <h3>Yorumlar</h3>
+      <div id="yorumListe" class="yorum-liste"></div>
+
+      <form id="yorumForm" class="yorum-form">
+        <textarea id="yorumInput" rows="3" placeholder="Yorumunuzu yazın…" required></textarea>
+        <button type="submit" class="btn btn-primary">Gönder</button>
+      </form>
+    </section>
+  </main>
+
+  <!-- Düzenleme Modalı -->
+  <div id="gorevModal" class="modal-overlay gizli">
+    <div class="modal-kart">
+      <div class="modal-baslik-bar">
+        <h3>Görevi Düzenle</h3>
+        <button id="modalKapat" class="modal-kapat">&times;</button>
+      </div>
+      <form id="gorevForm">
+        <label>Başlık</label>
+        <input type="text" id="formBaslik" required>
+
+        <label>Açıklama</label>
+        <textarea id="formAciklama" rows="3"></textarea>
+
+        <div class="form-satir">
+          <div>
+            <label>Durum</label>
+            <select id="formDurum">
+              <option value="bekliyor">Bekliyor</option>
+              <option value="devam_ediyor">Devam Ediyor</option>
+              <option value="tamamlandi">Tamamlandı</option>
+            </select>
+          </div>
+          <div>
+            <label>Öncelik</label>
+            <select id="formOncelik">
+              <option value="dusuk">Düşük</option>
+              <option value="orta">Orta</option>
+              <option value="yuksek">Yüksek</option>
+            </select>
+          </div>
+          <div>
+            <label>Deadline</label>
+            <input type="date" id="formDeadline">
+          </div>
+        </div>
+
+        <div class="form-aksiyonlar">
+          <button type="button" class="btn btn-ikincil" onclick="document.getElementById('gorevModal').classList.add('gizli')">İptal</button>
+          <button type="submit" class="btn btn-primary">Güncelle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/js/task-detail.js"></script>
+</body>
+</html>
