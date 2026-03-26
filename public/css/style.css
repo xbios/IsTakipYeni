@@ -20,6 +20,73 @@
   --renk-basari:      #22c55e;
   --yaricap:          8px;
   --golge:            0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+  /* Tema geçiş süresi */
+  --tema-gecis: background .2s, color .2s, border-color .2s, fill .2s;
+}
+
+/* ── Karanlık Mod ────────────────────────────────────────────── */
+html[data-tema="karanlik"] {
+  --renk-birincil:    #60a5fa;
+  --renk-birincil-koy:#3b82f6;
+  --renk-zemin:       #0f172a;
+  --renk-beyaz:       #1e293b;
+  --renk-kenar:       #334155;
+  --renk-metin:       #f1f5f9;
+  --renk-metin-hafif: #94a3b8;
+  --renk-hata:        #f87171;
+  --renk-uyari:       #fbbf24;
+  --renk-basari:      #4ade80;
+  --golge:            0 1px 3px rgba(0,0,0,.4), 0 2px 4px rgba(0,0,0,.3);
+}
+
+/* Karanlık: badge renkleri */
+html[data-tema="karanlik"] .badge-bekliyor      { background: #451a03; color: #fcd34d; }
+html[data-tema="karanlik"] .badge-devam_ediyor  { background: #1e3a5f; color: #93c5fd; }
+html[data-tema="karanlik"] .badge-tamamlandi    { background: #14532d; color: #86efac; }
+html[data-tema="karanlik"] .badge-oncelik-yuksek{ background: #450a0a; color: #fca5a5; }
+html[data-tema="karanlik"] .badge-oncelik-orta  { background: #451a03; color: #fcd34d; }
+html[data-tema="karanlik"] .badge-oncelik-dusuk { background: #052e16; color: #86efac; }
+
+/* Karanlık: tablo */
+html[data-tema="karanlik"] .tablo thead         { background: #162032; }
+html[data-tema="karanlik"] .tablo tr:hover td   { background: #162032; }
+
+/* Karanlık: form input */
+html[data-tema="karanlik"] input:focus,
+html[data-tema="karanlik"] select:focus,
+html[data-tema="karanlik"] textarea:focus       { box-shadow: 0 0 0 3px rgba(96,165,250,.2); }
+
+/* Karanlık: auth sayfası */
+html[data-tema="karanlik"] .auth-sayfasi        { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); }
+html[data-tema="karanlik"] .auth-kart           { background: #1e293b; }
+
+/* Karanlık: dosya yükleme */
+html[data-tema="karanlik"] .secilen-dosya       { background: #052e16; border-color: #166534; color: #86efac; }
+html[data-tema="karanlik"] .drop-zone           { border-color: #334155; }
+html[data-tema="karanlik"] .drop-zone:hover,
+html[data-tema="karanlik"] .drop-zone.drag-ustu { border-color: var(--renk-birincil); background: #1e3a5f; }
+
+/* Karanlık: önizleme */
+html[data-tema="karanlik"] .onizle-icerik       { background: #0f172a; border-color: #334155; }
+html[data-tema="karanlik"] .onizle-text         { color: #e2e8f0; }
+
+/* Karanlık: donut grafik arka halka */
+html[data-tema="karanlik"] .donut-svg circle:first-child { stroke: #334155; }
+
+/* Karanlık: btn-ikincil */
+html[data-tema="karanlik"] .btn-ikincil         { background: #334155; color: #f1f5f9; }
+html[data-tema="karanlik"] .btn-ikincil:hover   { background: #475569; }
+
+/* Karanlık: btn-onizle */
+html[data-tema="karanlik"] .btn-onizle          { background: #2e1065; color: #c4b5fd; }
+html[data-tema="karanlik"] .btn-onizle:hover    { background: #3b1a7a; }
+
+/* Geçiş animasyonu — tema değişirken yumuşak */
+body, .navbar, .tablo, .tablo th, .tablo td,
+.modal-kart, .detay-kart, .ozet-kart, .grafik-kart,
+.dosya-kart, .yorum-kart, .ek-satir, .auth-kart,
+input, select, textarea, .badge, .btn {
+  transition: background-color .25s, color .2s, border-color .25s, box-shadow .25s;
 }
 
 body {
@@ -68,6 +135,35 @@ a:hover { text-decoration: underline; }
 
 .nav-kullanici { display: flex; align-items: center; gap: .75rem; margin-left: auto; }
 .nav-kullanici span { color: var(--renk-metin-hafif); font-size: .9rem; }
+
+/* Tema toggle butonu */
+.tema-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--renk-kenar);
+  background: var(--renk-zemin);
+  color: var(--renk-metin);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .2s, border-color .2s, transform .15s;
+}
+.tema-btn:hover {
+  background: var(--renk-kenar);
+  transform: scale(1.1);
+}
+.tema-btn svg { display: block; pointer-events: none; }
+
+/* Auth sayfalarında sağ üst köşeye sabitle */
+.tema-btn-auth {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 50;
+}
 
 /* --- Konteyner --- */
 .konteyner { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }

@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kayıt Ol — İş Takip</title>
   <link rel="stylesheet" href="/css/style.css">
+  <script>(function(){var t=localStorage.getItem('tema')||'aydinlik';document.documentElement.dataset.tema=t;})()</script>
 </head>
 <body class="auth-sayfasi">
+  <button id="temaBtn" class="tema-btn tema-btn-auth" onclick="temaToggle()"></button>
   <div class="auth-kart">
     <h1>İş Takip</h1>
     <h2>Kayıt Ol</h2>
@@ -25,6 +27,7 @@
     </form>
     <p class="auth-link">Zaten hesabınız var mı? <a href="/login.html">Giriş yapın</a></p>
   </div>
+  <script type="module" src="/js/tema.js"></script>
   <script type="module" src="/js/auth.js"></script>
 </body>
 </html>

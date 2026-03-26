@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard — İş Takip</title>
   <link rel="stylesheet" href="/css/style.css">
+  <!-- Anti-FOUC: temayı render öncesi uygula -->
+  <script>(function(){var t=localStorage.getItem('tema')||'aydinlik';document.documentElement.dataset.tema=t;})()</script>
 </head>
 <body>
   <!-- Navigasyon -->
@@ -17,6 +19,7 @@
     </div>
     <div class="nav-kullanici">
       <span id="kullaniciAdi"></span>
+      <button id="temaBtn" class="tema-btn" onclick="temaToggle()"></button>
       <button id="logoutBtn" class="btn btn-kucuk" data-logout>Çıkış</button>
     </div>
   </nav>
@@ -130,6 +133,7 @@
     </section>
   </main>
 
+  <script type="module" src="/js/tema.js"></script>
   <script type="module" src="/js/dashboard.js"></script>
 </body>
 </html>
