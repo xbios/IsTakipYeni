@@ -623,7 +623,20 @@ html[data-tema="karanlik"] .checklist-bitis-gelecek { background: #052e16; color
   border-radius: var(--yaricap);
   padding: .85rem 1rem;
   border-left: 3px solid var(--renk-birincil);
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
 }
+.yorum-icerik { flex: 1; min-width: 0; }
+.yorum-aksiyonlar {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  flex-shrink: 0;
+}
+.yorum-aksiyonlar .btn-icon { font-size: .85rem; padding: .2rem .3rem; opacity: .55; }
+.yorum-aksiyonlar .btn-icon:hover { opacity: 1; background: var(--renk-sinir); }
+.yorum-sil-btn:hover { color: var(--renk-hata) !important; }
 .yorum-meta {
   display: flex;
   align-items: center;
@@ -637,7 +650,6 @@ html[data-tema="karanlik"] .checklist-bitis-gelecek { background: #052e16; color
 .yorum-form textarea { margin: 0; }
 .yorum-inline-textarea { width: 100%; margin: .25rem 0 .5rem; resize: vertical; }
 .yorum-inline-aksiyonlar { display: flex; gap: .5rem; margin-bottom: .25rem; }
-.yorum-duzenle-btn { font-size: .85rem; padding: .15rem .3rem; }
 
 /* --- Grafikler --- */
 .grafik-grid {

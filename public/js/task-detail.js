@@ -273,21 +273,26 @@ async function yukleYorumlar() {
     return;
   }
 
-  liste.innerHTML = yorumlar.map(y => `
+  liste.innerHTML = yorumlar.map(y => {
+    const sahip = kullanici && kullanici.id === y.kullanici_id;
+    const admin = kullanici && kullanici.rol === 'admin';
+    const aksiyonlar = (sahip || admin) ? `
+      <div class="yorum-aksiyonlar">
+        ${sahip ? `<button class="btn-icon yorum-duzenle-btn" onclick="yorumDuzenleBaslat(${y.id})" title="Düzenle">✏️</button>` : ''}
+        ${(sahip || admin) ? `<button class="btn-icon yorum-sil-btn" onclick="yorumSil(${y.id})" title="Sil">🗑️</button>` : ''}
+      </div>` : '';
+    return `
     <div class="yorum-kart" data-id="${y.id}">
-      <div class="yorum-meta">
-        <strong>${y.kullanici_ad}</strong>
-        <span>${new Date(y.created_at).toLocaleString('tr-TR')}</span>
-        ${kullanici && kullanici.id === y.kullanici_id ? `
-          <button class="btn-icon yorum-duzenle-btn" onclick="yorumDuzenleBaslat(${y.id})" title="Düzenle">✏️</button>
-          <button class="btn-link" onclick="yorumSil(${y.id})">Sil</button>
-        ` : (kullanici && kullanici.rol === 'admin'
-          ? `<button class="btn-link" onclick="yorumSil(${y.id})">Sil</button>`
-          : '')}
+      <div class="yorum-icerik">
+        <div class="yorum-meta">
+          <strong>${y.kullanici_ad}</strong>
+          <span>${new Date(y.created_at).toLocaleString('tr-TR')}</span>
+        </div>
+        <p class="yorum-metin" id="ym-${y.id}">${escHtml(y.yorum)}</p>
       </div>
-      <p class="yorum-metin" id="ym-${y.id}">${escHtml(y.yorum)}</p>
-    </div>
-  `).join('');
+      ${aksiyonlar}
+    </div>`;
+  }).join('');
 }
 
 async function yorumGonder(e) {
