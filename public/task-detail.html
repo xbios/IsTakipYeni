@@ -81,16 +81,47 @@
       </div>
     </section>
 
-    <!-- Yorumlar -->
-    <section class="yorumlar-bolum">
-      <h3>Yorumlar</h3>
-      <div id="yorumListe" class="yorum-liste"></div>
+    <!-- Checklist + Yorumlar yan yana -->
+    <div class="detay-alt-grid">
 
-      <form id="yorumForm" class="yorum-form">
-        <textarea id="yorumInput" rows="3" placeholder="Yorumunuzu yazın…" required></textarea>
-        <button type="submit" class="btn btn-primary">Gönder</button>
-      </form>
-    </section>
+      <!-- Sol: Kontrol Listesi -->
+      <section class="panel-kart">
+        <div class="panel-baslik-bar">
+          <h3>Kontrol Listesi</h3>
+          <span id="checklistIlerleme" class="checklist-ilerleme-metin"></span>
+        </div>
+
+        <!-- İlerleme çubuğu -->
+        <div class="checklist-progress-iz">
+          <div id="checklistProgressDolgu" class="checklist-progress-dolgu"></div>
+        </div>
+
+        <!-- Maddeler -->
+        <ul id="checklistListe" class="checklist-liste">
+          <li class="bos-alan">Yükleniyor…</li>
+        </ul>
+
+        <!-- Yeni madde ekleme -->
+        <form id="checklistForm" class="checklist-form">
+          <input type="text" id="checklistInput" placeholder="Yeni madde ekle…" autocomplete="off">
+          <input type="date" id="checklistTarih" class="checklist-tarih-input" title="Tahmini bitiş tarihi">
+          <button type="submit" class="btn btn-primary btn-kucuk">Ekle</button>
+        </form>
+      </section>
+
+      <!-- Sağ: Yorumlar -->
+      <section class="panel-kart">
+        <div class="panel-baslik-bar">
+          <h3>Yorumlar</h3>
+        </div>
+        <div id="yorumListe" class="yorum-liste panel-scroll"></div>
+        <form id="yorumForm" class="yorum-form">
+          <textarea id="yorumInput" rows="3" placeholder="Yorumunuzu yazın…" required></textarea>
+          <button type="submit" class="btn btn-primary">Gönder</button>
+        </form>
+      </section>
+
+    </div>
   </main>
 
   <!-- Düzenleme Modalı -->

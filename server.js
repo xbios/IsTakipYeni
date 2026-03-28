@@ -9,6 +9,7 @@ const projectRoutes     = require('./routes/projects');
 const taskRoutes        = require('./routes/tasks');
 const commentRoutes     = require('./routes/comments');
 const attachmentRoutes  = require('./routes/attachments');
+const checklistRoutes   = require('./routes/checklists');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/api/projects',   projectRoutes);
 app.use('/api/tasks',      taskRoutes);
 app.use('/api/comments',   commentRoutes);
 app.use('/api/attachments', attachmentRoutes);
+app.use('/api/checklists',  checklistRoutes);
 
 // Tüm diğer GET isteklerini SPA olarak index.html'e yönlendir
 app.get('*', (req, res) => {

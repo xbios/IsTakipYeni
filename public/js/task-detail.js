@@ -14,7 +14,10 @@ async function main() {
   if (isimEl && kullanici) isimEl.textContent = kullanici.ad;
 
   await yukleGorev();
-  await Promise.all([yukleYorumlar(), yukleEkler()]);
+  await Promise.all([yukleYorumlar(), yukleEkler(), yukleChecklist()]);
+
+  // Tarih inputuna varsayılan olarak 15 gün sonrasını set et
+  _checklistVarsayilanTarih();
 
   // Dosya seçildiğinde otomatik yükle
   document.getElementById('ekDosyaInput')?.addEventListener('change', async (e) => {
@@ -25,6 +28,7 @@ async function main() {
   });
 
   document.getElementById('yorumForm')?.addEventListener('submit', yorumGonder);
+  document.getElementById('checklistForm')?.addEventListener('submit', checklistEkle);
   document.getElementById('duzenleBtn')?.addEventListener('click', duzenleModalAc);
   document.getElementById('silBtn')?.addEventListener('click', gorevSil);
   document.getElementById('modalKapat')?.addEventListener('click', modalKapat);
@@ -64,6 +68,198 @@ async function yukleGorev() {
   document.getElementById('formDeadline').value = g.deadline ? g.deadline.split('T')[0] : '';
 }
 
+// ── Checklist ──────────────────────────────────────────────────────────────
+
+// 15 gün sonrasını YYYY-MM-DD formatında döndürür
+function _onbesGunSonrasi() {
+  const d = new Date();
+  d.setDate(d.getDate() + 15);
+  return d.toISOString().split('T')[0];
+}
+
+// Tarih inputuna varsayılan değer set et
+function _checklistVarsayilanTarih() {
+  const inp = document.getElementById('checklistTarih');
+  if (inp) inp.value = _onbesGunSonrasi();
+}
+
+// Tarihin durumunu hesapla: 'gecmis' | 'bugun' | 'gelecek' | null
+function _bitisDurumu(tarih) {
+  if (!tarih) return null;
+  const bugun = new Date(); bugun.setHours(0, 0, 0, 0);
+  const dl    = new Date(tarih); dl.setHours(0, 0, 0, 0);
+  const fark  = (dl - bugun) / 86400000;
+  if (fark < 0)  return 'gecmis';
+  if (fark === 0) return 'bugun';
+  return 'gelecek';
+}
+
+function _bitisBadge(tarih) {
+  const durum = _bitisDurumu(tarih);
+  if (!durum) return '';
+  const etiket = {
+    gecmis:  'Gecikmiş',
+    bugun:   'Bugün',
+    gelecek: 'Planlandı',
+  }[durum];
+  const tarihStr = new Date(tarih).toLocaleDateString('tr-TR');
+  return `<span class="checklist-bitis checklist-bitis-${durum}">📅 ${tarihStr} · ${etiket}</span>`;
+}
+
+async function yukleChecklist() {
+  const res      = await apiFetch(`/api/checklists/task/${taskId}`);
+  const maddeler = await res.json();
+  renderChecklist(maddeler);
+}
+
+function renderChecklist(maddeler) {
+  const liste    = document.getElementById('checklistListe');
+  const ilerleme = document.getElementById('checklistIlerleme');
+  const dolgu    = document.getElementById('checklistProgressDolgu');
+  if (!liste) return;
+
+  const toplam     = maddeler.length;
+  const tamamlanan = maddeler.filter(m => m.tamamlandi).length;
+  const pct        = toplam ? Math.round((tamamlanan / toplam) * 100) : 0;
+
+  ilerleme.textContent   = toplam ? `${tamamlanan}/${toplam}` : '';
+  dolgu.style.width      = `${pct}%`;
+  dolgu.style.background = pct === 100 ? 'var(--renk-basari)' : 'var(--renk-birincil)';
+
+  if (toplam === 0) {
+    liste.innerHTML = '<li class="checklist-bos">Henüz madde yok. Aşağıdan ekleyin.</li>';
+    return;
+  }
+
+  const kullanici = getKullanici();
+  liste.innerHTML = maddeler.map(m => `
+    <li class="checklist-madde ${m.tamamlandi ? 'tamamlandi' : ''}">
+      <label class="checklist-etiket">
+        <input type="checkbox" class="checklist-cb"
+               ${m.tamamlandi ? 'checked' : ''}
+               onchange="checklistToggle(${m.id})">
+        <div class="checklist-metin-grup">
+          <span class="checklist-metin" id="cmi-${m.id}">${escHtml(m.metin)}</span>
+          ${_bitisBadge(m.tahmini_bitis)}
+        </div>
+      </label>
+      <div class="checklist-aksiyonlar">
+        <button class="btn-icon checklist-duzenle-btn"
+                onclick="checklistDuzenleBaslat(${m.id}, '${m.tahmini_bitis ? m.tahmini_bitis.split('T')[0] : ''}')"
+                title="Düzenle">✏️</button>
+        ${kullanici && (kullanici.rol === 'admin' || kullanici.id === m.olusturan_id)
+          ? `<button class="btn-icon" onclick="checklistSil(${m.id})" title="Sil">🗑️</button>`
+          : ''}
+      </div>
+    </li>
+  `).join('');
+}
+
+async function checklistEkle(e) {
+  e.preventDefault();
+  const input  = document.getElementById('checklistInput');
+  const tarihEl = document.getElementById('checklistTarih');
+  const metin  = input.value.trim();
+  if (!metin) return;
+
+  const res = await apiFetch('/api/checklists', {
+    method: 'POST',
+    body: JSON.stringify({
+      task_id:        taskId,
+      metin,
+      tahmini_bitis:  tarihEl?.value || null,
+    }),
+  });
+  if (!res.ok) { alert('Eklenemedi'); return; }
+  input.value = '';
+  // Tarih inputunu tekrar 15 gün sonrasına sıfırla
+  if (tarihEl) tarihEl.value = _onbesGunSonrasi();
+  yukleChecklist();
+}
+
+window.checklistToggle = async (id) => {
+  await apiFetch(`/api/checklists/${id}/toggle`, { method: 'PATCH' });
+  yukleChecklist();
+};
+
+window.checklistSil = async (id) => {
+  if (!confirm('Bu maddeyi silmek istiyor musunuz?')) return;
+  await apiFetch(`/api/checklists/${id}`, { method: 'DELETE' });
+  yukleChecklist();
+};
+
+// Madde metnini ve tarihini yerinde düzenle (inline edit)
+window.checklistDuzenleBaslat = (id, mevcutTarih) => {
+  const metinEl = document.getElementById(`cmi-${id}`);
+  if (!metinEl) return;
+
+  const maddeEl  = metinEl.closest('.checklist-madde');
+  const grupEl   = metinEl.closest('.checklist-metin-grup'); // metin + badge
+  const eskiMetin = metinEl.textContent;
+
+  // Metin inputu
+  const textInput = document.createElement('input');
+  textInput.type      = 'text';
+  textInput.value     = eskiMetin;
+  textInput.className = 'checklist-inline-input';
+
+  // Tarih inputu
+  const tarihInput = document.createElement('input');
+  tarihInput.type      = 'date';
+  tarihInput.value     = mevcutTarih || '';
+  tarihInput.className = 'checklist-inline-tarih';
+  tarihInput.title     = 'Tahmini bitiş tarihi';
+
+  // Butonlar
+  const kaydetBtn = document.createElement('button');
+  kaydetBtn.textContent = '✓';
+  kaydetBtn.className   = 'btn btn-kucuk btn-primary';
+
+  const iptalBtn = document.createElement('button');
+  iptalBtn.textContent = '✗';
+  iptalBtn.className   = 'btn btn-kucuk btn-ikincil';
+
+  // Grup içeriğini inputlarla değiştir
+  grupEl.innerHTML = '';
+  grupEl.append(textInput, tarihInput);
+
+  // Düzenle butonunu gizle
+  const duzenleBtn = maddeEl.querySelector('.checklist-duzenle-btn');
+  if (duzenleBtn) duzenleBtn.style.display = 'none';
+
+  // Butonları aksiyonlar alanına ekle
+  const aksiyonlar = maddeEl.querySelector('.checklist-aksiyonlar');
+  aksiyonlar.prepend(iptalBtn);
+  aksiyonlar.prepend(kaydetBtn);
+
+  textInput.focus();
+
+  async function kaydet() {
+    const yeniMetin = textInput.value.trim();
+    if (!yeniMetin) { iptal(); return; }
+    const res = await apiFetch(`/api/checklists/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        metin:          yeniMetin,
+        tahmini_bitis:  tarihInput.value || null,
+      }),
+    });
+    if (!res.ok) { alert('Güncellenemedi'); return; }
+    yukleChecklist();
+  }
+
+  function iptal() { yukleChecklist(); }
+
+  kaydetBtn.onclick = kaydet;
+  iptalBtn.onclick  = iptal;
+  textInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter')  { e.preventDefault(); kaydet(); }
+    if (e.key === 'Escape') iptal();
+  });
+};
+
+// ── Yorumlar ───────────────────────────────────────────────────────────────
+
 async function yukleYorumlar() {
   const res      = await apiFetch(`/api/comments/task/${taskId}`);
   const yorumlar = await res.json();
@@ -82,11 +278,14 @@ async function yukleYorumlar() {
       <div class="yorum-meta">
         <strong>${y.kullanici_ad}</strong>
         <span>${new Date(y.created_at).toLocaleString('tr-TR')}</span>
-        ${kullanici && kullanici.id === y.kullanici_id
+        ${kullanici && kullanici.id === y.kullanici_id ? `
+          <button class="btn-icon yorum-duzenle-btn" onclick="yorumDuzenleBaslat(${y.id})" title="Düzenle">✏️</button>
+          <button class="btn-link" onclick="yorumSil(${y.id})">Sil</button>
+        ` : (kullanici && kullanici.rol === 'admin'
           ? `<button class="btn-link" onclick="yorumSil(${y.id})">Sil</button>`
-          : ''}
+          : '')}
       </div>
-      <p>${escHtml(y.yorum)}</p>
+      <p class="yorum-metin" id="ym-${y.id}">${escHtml(y.yorum)}</p>
     </div>
   `).join('');
 }
@@ -110,6 +309,62 @@ window.yorumSil = async (id) => {
   if (!confirm('Yorumu silmek istiyor musunuz?')) return;
   await apiFetch(`/api/comments/${id}`, { method: 'DELETE' });
   yukleYorumlar();
+};
+
+window.yorumDuzenleBaslat = (id) => {
+  const metinEl = document.getElementById(`ym-${id}`);
+  if (!metinEl) return;
+  const kartEl   = metinEl.closest('.yorum-kart');
+  const eskiMetin = metinEl.textContent;
+
+  // Textarea
+  const ta = document.createElement('textarea');
+  ta.value     = eskiMetin;
+  ta.className = 'yorum-inline-textarea';
+  ta.rows      = 3;
+  metinEl.replaceWith(ta);
+
+  // Butonlar
+  const btnSatir = document.createElement('div');
+  btnSatir.className = 'yorum-inline-aksiyonlar';
+
+  const kaydetBtn = document.createElement('button');
+  kaydetBtn.textContent = 'Kaydet';
+  kaydetBtn.className   = 'btn btn-kucuk btn-primary';
+
+  const iptalBtn = document.createElement('button');
+  iptalBtn.textContent = 'İptal';
+  iptalBtn.className   = 'btn btn-kucuk btn-ikincil';
+
+  btnSatir.append(kaydetBtn, iptalBtn);
+  ta.after(btnSatir);
+
+  // Düzenle butonunu gizle
+  const duzenleBtn = kartEl.querySelector('.yorum-duzenle-btn');
+  if (duzenleBtn) duzenleBtn.style.display = 'none';
+
+  ta.focus();
+  ta.setSelectionRange(ta.value.length, ta.value.length);
+
+  async function kaydet() {
+    const yeniMetin = ta.value.trim();
+    if (!yeniMetin) { iptal(); return; }
+    const res = await apiFetch(`/api/comments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ yorum: yeniMetin }),
+    });
+    if (!res.ok) { alert('Güncellenemedi'); return; }
+    yukleYorumlar();
+  }
+
+  function iptal() { yukleYorumlar(); }
+
+  kaydetBtn.onclick = kaydet;
+  iptalBtn.onclick  = iptal;
+  ta.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') iptal();
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); kaydet(); }
+  });
 };
 
 // --- Ekler ---

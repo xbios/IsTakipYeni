@@ -67,6 +67,23 @@ CREATE TABLE IF NOT EXISTS attachments (
   CONSTRAINT fk_att_user FOREIGN KEY (kullanici_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Görev Kontrol Listesi (Checklist)
+CREATE TABLE IF NOT EXISTS checklist_items (
+  id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  task_id         INT UNSIGNED NOT NULL,
+  metin           VARCHAR(500) NOT NULL,
+  tamamlandi      TINYINT(1) NOT NULL DEFAULT 0,
+  sira            INT UNSIGNED NOT NULL DEFAULT 0,
+  tahmini_bitis   DATE,                              -- Tahmini bitiş tarihi (opsiyonel)
+  olusturan_id    INT UNSIGNED NOT NULL,
+  created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_ci_task FOREIGN KEY (task_id)      REFERENCES tasks(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ci_user FOREIGN KEY (olusturan_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+-- Mevcut tabloya sütun eklemek için (tablo zaten varsa çalıştırın):
+-- ALTER TABLE checklist_items ADD COLUMN tahmini_bitis DATE AFTER sira;
+
 -- Yorumlar
 CREATE TABLE IF NOT EXISTS comments (
   id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
