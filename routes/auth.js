@@ -37,8 +37,9 @@ function setRefreshCookie(res, token) {
   res.cookie('refreshToken', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: REFRESH_MS,
+    path: '/',
   });
 }
 
@@ -123,7 +124,10 @@ router.post('/refresh', async (req, res) => {
     const user = users[0];
     const accessToken = signAccess(user);
 
-    res.json({ accessToken });
+    res.json({
+      accessToken,
+      kullanici: { id: user.id, ad: user.ad, email: user.email, rol: user.rol },
+    });
   } catch (err) {
     console.error(err);
     res.status(401).json({ error: 'Refresh token doğrulanamadı' });

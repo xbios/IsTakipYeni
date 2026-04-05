@@ -24,11 +24,16 @@ export async function initAuth() {
       method: 'POST',
       credentials: 'include',
     });
-    if (!res.ok) return false;
+    if (!res.ok) {
+      console.warn('initAuth başarısız:', res.status);
+      return false;
+    }
     const data = await res.json();
     setAccessToken(data.accessToken);
+    if (data.kullanici) setKullanici(data.kullanici);
     return true;
-  } catch {
+  } catch (err) {
+    console.error('initAuth hata:', err);
     return false;
   }
 }
